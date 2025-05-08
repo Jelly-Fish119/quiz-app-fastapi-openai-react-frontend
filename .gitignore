@@ -1,73 +1,27 @@
-# Python
-backend/__pycache__/
-backend/*.py[cod]
-backend/*.pyo
-backend/*.pyd
-backend/*.so
-backend/.Python
-backend/env/
-venv/
-ENV/
-*.env
-*.env.*
 
-backend
-
-# FastAPI specific
-backend/instance/
-backend/*.sqlite3
-backend/*.db
-backend/*.log
-
-# Vscode settings
-backend/.vscode/
-
-# Byte-compiled / optimized / DLL files
-backend/*.pyc
-backend/*.pyo
-backend/*.pyd
-
-# Test coverage reports
-backend/htmlcov/
-backend/.tox/
-backend/.coverage
-backend/.cache
-backend/nosetests.xml
-backend/coverage.xml
-backend/*.cover
-backend/*.py,cover
-
-# Jupyter Notebook
-backend/.ipynb_checkpoints
-
-# mypy
-backend/.mypy_cache/
-backend/.dmypy.json
-backend/dmypy.json
-
-# Pyre type checker
-backend/.pyre/
-
-# React (Vite)
-frontend/node_modules/
-frontend/dist/  
-frontend/.vite/
-
+=======
 # Logs
-backend/*.log
-
-# System
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-*.iml
-
-# npm
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Local environments
+node_modules
+dist
+dist-ssr
 *.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+>>>>>>> 4f8fb35 (first commit frontend app)
