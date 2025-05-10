@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadPdf } from '../features/pdf-topic-extractor/api';
+import { uploadPdf, analyzePdf, generateQuiz } from '../features/pdf-topic-extractor/api';
 
 interface QuizQuestion {
   question: string;
@@ -16,6 +16,8 @@ interface QuizQuestion {
 
 interface PageQuiz {
   topic: string;
+  chapter?: string;
+  page: number;
   questions: {
     multiple_choice: QuizQuestion[];
     fill_blanks: QuizQuestion[];
@@ -30,23 +32,51 @@ interface QuizResponse {
   };
 }
 
+interface Chapter {
+  title: string;
+  pageNumber: number;
+  topics: {
+    name: string;
+    pageNumber: number;
+  }[];
+}
+
 export const UploadForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [quizzes, setQuizzes] = useState<QuizResponse | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: any}>({});
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [selectedChapter, setSelectedChapter] = useState<string>('');
+  const [selectedPage, setSelectedPage] = useState<number | null>(null);
 
-  const handleUpload = async () => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    
+    setFile(selectedFile);
+    try {
+      setIsLoading(true);
+      const analysis = await analyzePdf(selectedFile);
+      setChapters(analysis.chapters);
+    } catch (error) {
+      alert('Failed to analyze document');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateQuiz = async () => {
     if (!file) return;
     try {
       setIsLoading(true);
-      const result = await uploadPdf(file);
+      const result = await generateQuiz(file, selectedChapter || undefined, selectedPage || undefined);
       setQuizzes(result);
       setSelectedAnswers({});
       setShowResults(false);
     } catch (error) {
-      alert('Failed to extract topics and generate questions');
+      alert('Failed to generate quiz questions');
     } finally {
       setIsLoading(false);
     }
@@ -291,37 +321,88 @@ export const UploadForm: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">PDF Quiz Generator</h1>
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <button
-              onClick={handleUpload}
-              disabled={!file || isLoading}
-              className={`px-6 py-3 rounded-lg font-medium text-white transition-colors
-                ${!file || isLoading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'}`}
-            >
-              {isLoading ? 'Generating...' : 'Generate Quiz'}
-            </button>
+          
+          {/* File Upload */}
+          <div className="mb-6">
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+            />
           </div>
+
+          {/* Chapter and Page Selection */}
+          {chapters.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Chapter Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Chapter
+                </label>
+                <select
+                  value={selectedChapter}
+                  onChange={(e) => {
+                    setSelectedChapter(e.target.value);
+                    setSelectedPage(null);
+                  }}
+                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">All Chapters</option>
+                  {chapters.map((chapter) => (
+                    <option key={chapter.title} value={chapter.title}>
+                      {chapter.title} (Page {chapter.pageNumber})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Page Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Page
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={selectedPage || ''}
+                  onChange={(e) => {
+                    const page = e.target.value ? parseInt(e.target.value) : null;
+                    setSelectedPage(page);
+                    setSelectedChapter('');
+                  }}
+                  placeholder="Enter page number"
+                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Generate Quiz Button */}
+          <button
+            onClick={handleGenerateQuiz}
+            disabled={!file || isLoading}
+            className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
+              ${!file || isLoading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'}`}
+          >
+            {isLoading ? 'Generating...' : 'Generate Quiz'}
+          </button>
         </div>
 
+        {/* Quiz Display */}
         {quizzes && (
           <div className="space-y-8">
             {Object.entries(quizzes.quizzes).map(([pageKey, pageQuiz]) => (
               <div key={pageKey} className="bg-white rounded-2xl shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Page {pageKey.split('_')[1]}
-                </h2>
-                <p className="text-gray-600 mb-8">{pageQuiz.topic}</p>
-                
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {pageQuiz.chapter ? `Chapter: ${pageQuiz.chapter}` : `Page ${pageQuiz.page}`}
+                  </h2>
+                  <p className="text-gray-600">Topic: {pageQuiz.topic}</p>
+                </div>
+
                 {/* Multiple Choice Questions */}
                 <div className="mb-12">
                   <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
@@ -398,6 +479,7 @@ export const UploadForm: React.FC = () => {
                   >
                     Check Answers
                   </button>
+                  
                   {showResults && (
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center justify-between">
