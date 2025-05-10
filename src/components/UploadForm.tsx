@@ -68,6 +68,12 @@ interface AnalysisResponse {
   };
 }
 
+interface SelectedContent {
+  chapters: Chapter[];
+  topics: Topic[];
+  subTopics: SubTopic[];
+}
+
 export const UploadForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [quizzes, setQuizzes] = useState<QuizResponse | null>(null);
@@ -78,6 +84,9 @@ export const UploadForm: React.FC = () => {
   const [selectedChapter, setSelectedChapter] = useState<string>('');
   const [selectedPage, setSelectedPage] = useState<number | null>(null);
   const [availablePages, setAvailablePages] = useState<number[]>([]);
+  const [selectedPosition, setSelectedPosition] = useState<{top: number; left: number} | null>(null);
+  const [selectedContent, setSelectedContent] = useState<SelectedContent | null>(null);
+  const [showContentPreview, setShowContentPreview] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -108,8 +117,41 @@ export const UploadForm: React.FC = () => {
     }
   };
 
+  const handleContentSelection = () => {
+    if (!selectedPage) return;
+
+    const selectedChapters: Chapter[] = [];
+    const selectedTopics: Topic[] = [];
+    const selectedSubTopics: SubTopic[] = [];
+
+    chapters.forEach((chapter: Chapter) => {
+      if (chapter.pageNumber === selectedPage) {
+        selectedChapters.push(chapter);
+        
+        chapter.topics.forEach((topic: Topic) => {
+          if (topic.pageNumber === selectedPage) {
+            selectedTopics.push(topic);
+            
+            topic.subTopics?.forEach((subTopic: SubTopic) => {
+              if (subTopic.pageNumber === selectedPage) {
+                selectedSubTopics.push(subTopic);
+              }
+            });
+          }
+        });
+      }
+    });
+
+    setSelectedContent({
+      chapters: selectedChapters,
+      topics: selectedTopics,
+      subTopics: selectedSubTopics
+    });
+    setShowContentPreview(true);
+  };
+
   const handleGenerateQuiz = async () => {
-    if (!file) return;
+    if (!file || !selectedContent) return;
     try {
       setIsLoading(true);
       const result = await generateQuiz(file, selectedChapter || undefined, selectedPage || undefined);
@@ -357,6 +399,75 @@ export const UploadForm: React.FC = () => {
     );
   };
 
+  const renderContentPreview = () => {
+    if (!selectedContent) return null;
+
+    return (
+      <div className="mb-6 space-y-6">
+        {/* Content Tree View */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Content Structure</h3>
+          <div className="space-y-4">
+            {selectedContent.chapters.map((chapter) => (
+              <div key={chapter.title} className="space-y-2">
+                {/* Chapter */}
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{chapter.title}</p>
+                    <p className="text-sm text-gray-500">Page {chapter.pageNumber}</p>
+                  </div>
+                </div>
+
+                {/* Topics */}
+                <div className="ml-6 space-y-2">
+                  {chapter.topics.map((topic) => (
+                    <div key={topic.name} className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800">{topic.name}</p>
+                          <p className="text-sm text-gray-500">Page {topic.pageNumber}</p>
+                        </div>
+                      </div>
+
+                      {/* Subtopics */}
+                      {topic.subTopics && topic.subTopics.length > 0 && (
+                        <div className="ml-6 space-y-2">
+                          {topic.subTopics.map((subTopic) => (
+                            <div key={subTopic.name} className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-700">{subTopic.name}</p>
+                                <p className="text-sm text-gray-500">Page {subTopic.pageNumber}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Generate Quiz Button */}
+        <button
+          onClick={handleGenerateQuiz}
+          disabled={isLoading}
+          className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
+            ${isLoading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700'}`}
+        >
+          {isLoading ? 'Generating...' : 'Generate Quiz'}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -373,67 +484,45 @@ export const UploadForm: React.FC = () => {
             />
           </div>
 
-          {/* Chapter and Page Selection */}
+          {/* Page Selection */}
           {chapters.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Chapter Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Chapter
-                </label>
-                <select
-                  value={selectedChapter}
-                  onChange={(e) => {
-                    setSelectedChapter(e.target.value);
-                    setSelectedPage(null);
-                  }}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">All Chapters</option>
-                  {chapters.map((chapter) => (
-                    <option key={chapter.title} value={chapter.title}>
-                      {chapter.title} (Page {chapter.pageNumber})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Page Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Page
-                </label>
-                <select
-                  value={selectedPage || ''}
-                  onChange={(e) => {
-                    const page = e.target.value ? parseInt(e.target.value) : null;
-                    setSelectedPage(page);
-                    setSelectedChapter('');
-                  }}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">All Pages</option>
-                  {availablePages.map((page) => (
-                    <option key={page} value={page}>
-                      Page {page}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Page
+              </label>
+              <select
+                value={selectedPage || ''}
+                onChange={(e) => {
+                  const page = e.target.value ? parseInt(e.target.value) : null;
+                  setSelectedPage(page);
+                  setSelectedChapter('');
+                  setSelectedContent(null);
+                  setShowContentPreview(false);
+                }}
+                className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">Select a page</option>
+                {availablePages.map((page) => (
+                  <option key={page} value={page}>
+                    Page {page}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
-          {/* Generate Quiz Button */}
-          <button
-            onClick={handleGenerateQuiz}
-            disabled={!file || isLoading}
-            className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
-              ${!file || isLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'}`}
-          >
-            {isLoading ? 'Generating...' : 'Generate Quiz'}
-          </button>
+          {/* Preview Content Button */}
+          {selectedPage && !showContentPreview && (
+            <button
+              onClick={handleContentSelection}
+              className="w-full mb-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Preview Content
+            </button>
+          )}
+
+          {/* Content Preview */}
+          {showContentPreview && renderContentPreview()}
         </div>
 
         {/* Quiz Display */}
