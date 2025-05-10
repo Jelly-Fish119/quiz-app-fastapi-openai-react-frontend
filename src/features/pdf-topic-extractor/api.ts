@@ -6,7 +6,7 @@ export const uploadPdf = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await axios.post(`${API_URL}/pdf/upload`, formData, {
+  const response = await axios.post(`${API_URL}/api/pdf/upload`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -19,7 +19,7 @@ export const analyzePdf = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await axios.post(`${API_URL}/pdf/analyze`, formData, {
+  const response = await axios.post(`${API_URL}/api/pdf/analyze`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
