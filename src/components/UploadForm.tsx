@@ -32,13 +32,40 @@ interface QuizResponse {
   };
 }
 
+interface SubTopic {
+  name: string;
+  pageNumber: number;
+  position: {
+    top: number;
+    left: number;
+  };
+  subTopics?: SubTopic[];
+}
+
+interface Topic {
+  name: string;
+  pageNumber: number;
+  position: {
+    top: number;
+    left: number;
+  };
+  subTopics?: SubTopic[];
+}
+
 interface Chapter {
   title: string;
   pageNumber: number;
-  topics: {
-    name: string;
-    pageNumber: number;
-  }[];
+  position: {
+    top: number;
+    left: number;
+  };
+  topics: Topic[];
+}
+
+interface AnalysisResponse {
+  chapters: {
+    chapters: Chapter[];
+  };
 }
 
 export const UploadForm: React.FC = () => {
@@ -50,6 +77,7 @@ export const UploadForm: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<string>('');
   const [selectedPage, setSelectedPage] = useState<number | null>(null);
+  const [availablePages, setAvailablePages] = useState<number[]>([]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -59,7 +87,20 @@ export const UploadForm: React.FC = () => {
     try {
       setIsLoading(true);
       const analysis = await analyzePdf(selectedFile);
-      setChapters(analysis.chapters);
+      setChapters(analysis.chapters.chapters);
+      
+      // Extract unique page numbers from chapters
+      const pages = new Set<number>();
+      analysis.chapters.chapters.forEach((chapter: Chapter) => {
+        pages.add(chapter.pageNumber);
+        chapter.topics.forEach((topic: Topic) => {
+          pages.add(topic.pageNumber);
+          topic.subTopics?.forEach((subTopic: SubTopic) => {
+            pages.add(subTopic.pageNumber);
+          });
+        });
+      });
+      setAvailablePages(Array.from(pages).sort((a, b) => a - b));
     } catch (error) {
       alert('Failed to analyze document');
     } finally {
@@ -362,18 +403,22 @@ export const UploadForm: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Page
                 </label>
-                <input
-                  type="number"
-                  min="1"
+                <select
                   value={selectedPage || ''}
                   onChange={(e) => {
                     const page = e.target.value ? parseInt(e.target.value) : null;
                     setSelectedPage(page);
                     setSelectedChapter('');
                   }}
-                  placeholder="Enter page number"
                   className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                />
+                >
+                  <option value="">All Pages</option>
+                  {availablePages.map((page) => (
+                    <option key={page} value={page}>
+                      Page {page}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
