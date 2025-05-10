@@ -406,50 +406,51 @@ export const UploadForm: React.FC = () => {
       <div className="mb-6 space-y-6">
         {/* Content Tree View */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Content Structure</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Content Structure for Page {selectedPage}</h3>
           <div className="space-y-4">
-            {selectedContent.chapters.map((chapter) => (
-              <div key={chapter.title} className="space-y-2">
-                {/* Chapter */}
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{chapter.title}</p>
-                    <p className="text-sm text-gray-500">Page {chapter.pageNumber}</p>
+            {selectedContent.chapters.length > 0 ? (
+              selectedContent.chapters.map((chapter) => (
+                <div key={chapter.title} className="space-y-2">
+                  {/* Chapter */}
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{chapter.title}</p>
+                    </div>
+                  </div>
+
+                  {/* Topics */}
+                  <div className="ml-6 space-y-2">
+                    {chapter.topics.map((topic) => (
+                      <div key={topic.name} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800">{topic.name}</p>
+                          </div>
+                        </div>
+
+                        {/* Subtopics */}
+                        {topic.subTopics && topic.subTopics.length > 0 && (
+                          <div className="ml-6 space-y-2">
+                            {topic.subTopics.map((subTopic) => (
+                              <div key={subTopic.name} className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <div className="flex-1">
+                                  <p className="font-medium text-gray-700">{subTopic.name}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* Topics */}
-                <div className="ml-6 space-y-2">
-                  {chapter.topics.map((topic) => (
-                    <div key={topic.name} className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">{topic.name}</p>
-                          <p className="text-sm text-gray-500">Page {topic.pageNumber}</p>
-                        </div>
-                      </div>
-
-                      {/* Subtopics */}
-                      {topic.subTopics && topic.subTopics.length > 0 && (
-                        <div className="ml-6 space-y-2">
-                          {topic.subTopics.map((subTopic) => (
-                            <div key={subTopic.name} className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              <div className="flex-1">
-                                <p className="font-medium text-gray-700">{subTopic.name}</p>
-                                <p className="text-sm text-gray-500">Page {subTopic.pageNumber}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500 italic">No content found for this page</p>
+            )}
           </div>
         </div>
 
@@ -517,7 +518,7 @@ export const UploadForm: React.FC = () => {
               onClick={handleContentSelection}
               className="w-full mb-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
-              Preview Content
+              Preview Chapters, Topics and Subtopics
             </button>
           )}
 
