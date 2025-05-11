@@ -421,22 +421,24 @@ export const UploadForm: React.FC = () => {
 
                   {/* Topics */}
                   <div className="ml-6 space-y-4">
+                    <h3>Topic</h3>
                     {chapter.topics.map((topic) => (
                       <div key={topic.name} className="space-y-3">
                         <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                           <div className="flex items-center space-x-3">
-                            <div className="w-3 h-3 bg-green-500 rounded-full">Topic</div>
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                             <h5 className="text-md font-medium text-green-900">{topic.name}</h5>
                           </div>
                         </div>
 
                         {/* Subtopics */}
+                        <h4>Subtopic</h4>
                         {topic.subTopics && topic.subTopics.length > 0 && (
                           <div className="ml-6 space-y-2">
                             {topic.subTopics.map((subTopic) => (
                               <div key={subTopic.name} className="bg-purple-50 p-3 rounded-lg border border-purple-100">
                                 <div className="flex items-center space-x-3">
-                                  <div className="w-2 h-2 bg-purple-500 rounded-full">Subtopic</div>
+                                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                                   <p className="text-sm font-medium text-purple-900">{subTopic.name}</p>
                                 </div>
                               </div>
