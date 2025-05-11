@@ -468,7 +468,7 @@ export const UploadForm: React.FC = () => {
           <button
             onClick={handleGenerateQuiz}
             disabled={isLoading}
-            className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
+            className={`w-full px-6 py-3 rounded-lg font-medium text-black transition-colors
               ${isLoading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-green-600 hover:bg-green-700'}`}
@@ -545,7 +545,7 @@ export const UploadForm: React.FC = () => {
           {selectedPage && !showContentPreview && (
             <button
               onClick={handleContentSelection}
-              className="w-full mb-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full mb-6 px-6 py-3 bg-blue-600 text-black rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
               Preview Chapters, Topics and Subtopics
@@ -640,7 +640,7 @@ export const UploadForm: React.FC = () => {
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <button
                     onClick={() => setShowResults(true)}
-                    className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    className="w-full px-6 py-3 bg-green-600 text-black rounded-lg font-medium hover:bg-green-700 transition-colors"
                   >
                     Check Answers
                   </button>
