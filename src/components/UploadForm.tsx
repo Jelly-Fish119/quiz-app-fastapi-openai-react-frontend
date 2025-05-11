@@ -176,7 +176,7 @@ export const UploadForm: React.FC = () => {
     try {
       setIsLoading(true);
       setLoadingStatus('Generating quiz questions...');
-      const result = await generateQuiz(file, selectedChapter || undefined, selectedPage);
+      const result = await generateQuiz(file.name, selectedChapter || undefined, selectedPage);
       setQuizzes(result);
       setSelectedAnswers({});
       setShowResults(false);
