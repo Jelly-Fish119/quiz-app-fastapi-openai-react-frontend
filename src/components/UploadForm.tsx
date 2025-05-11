@@ -88,12 +88,14 @@ export const UploadForm: React.FC = () => {
   const [selectedPosition, setSelectedPosition] = useState<{top: number; left: number} | null>(null);
   const [selectedContent, setSelectedContent] = useState<SelectedContent | null>(null);
   const [showContentPreview, setShowContentPreview] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
     
     setFile(selectedFile);
+    setError(null);
     try {
       setIsLoading(true);
       setLoadingStatus('Analyzing document structure...');
@@ -114,7 +116,7 @@ export const UploadForm: React.FC = () => {
       setAvailablePages(Array.from(pages).sort((a, b) => a - b));
       setLoadingStatus('');
     } catch (error) {
-      alert('Failed to analyze document');
+      setError('Failed to analyze document. Please try again.');
       setLoadingStatus('');
     } finally {
       setIsLoading(false);
@@ -155,17 +157,27 @@ export const UploadForm: React.FC = () => {
   };
 
   const handleGenerateQuiz = async () => {
-    if (!file || !selectedContent) return;
+    if (!file) {
+      setError('Please select a PDF file first.');
+      return;
+    }
+
+    if (!selectedPage) {
+      setError('Please select a page to generate quiz for.');
+      return;
+    }
+
+    setError(null);
     try {
       setIsLoading(true);
       setLoadingStatus('Generating quiz questions...');
-      const result = await generateQuiz(file, selectedChapter || undefined, selectedPage || undefined);
+      const result = await generateQuiz(file, selectedChapter || undefined, selectedPage);
       setQuizzes(result);
       setSelectedAnswers({});
       setShowResults(false);
       setLoadingStatus('');
     } catch (error) {
-      alert('Failed to generate quiz questions');
+      setError('Failed to generate quiz questions. Please try again.');
       setLoadingStatus('');
     } finally {
       setIsLoading(false);
@@ -388,6 +400,7 @@ export const UploadForm: React.FC = () => {
               </div>
             ))}
           </div>
+          
           {showResults && (
             <div className="space-y-4">
               <h4 className="font-medium text-gray-700 mb-3">Correct Matches</h4>
@@ -468,10 +481,10 @@ export const UploadForm: React.FC = () => {
           <button
             onClick={handleGenerateQuiz}
             disabled={isLoading}
-            className={`w-full px-6 py-3 rounded-lg font-medium text-black transition-colors
+            className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
               ${isLoading
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700'}`}
+                : 'bg-blue-600 hover:bg-blue-700'}`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center space-x-2">
@@ -496,22 +509,39 @@ export const UploadForm: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="w-full max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">PDF Quiz Generator</h1>
           
           {/* File Upload */}
           <div className="mb-6">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileChange}
-              className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              disabled={isLoading}
-            />
-            {isLoading && loadingStatus && <LoadingSpinner />}
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload PDF File
+            </label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                disabled={isLoading}
+              />
+              {isLoading && loadingStatus && (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-gray-600">{loadingStatus}</span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
 
           {/* Page Selection */}
           {chapters.length > 0 && (
@@ -640,7 +670,7 @@ export const UploadForm: React.FC = () => {
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <button
                     onClick={() => setShowResults(true)}
-                    className="w-full px-6 py-3 bg-green-600 text-black rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                   >
                     Check Answers
                   </button>
