@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
-export const uploadPdf = async (file: File) => {
+export const uploadPdf = async (file: File, onProgress?: (progress: number) => void) => {
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
   const fileId = Date.now().toString();
 
@@ -28,7 +28,7 @@ export const uploadPdf = async (file: File) => {
           const percentCompleted = Math.round(
             ((chunkIndex * CHUNK_SIZE + progressEvent.loaded) / file.size) * 100
           );
-          console.log(`Upload Progress: ${percentCompleted}%`);
+          onProgress?.(percentCompleted);
         },
       });
     } catch (error) {

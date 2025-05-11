@@ -81,6 +81,7 @@ export const UploadForm: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState<string>('');
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<string>('');
   const [selectedPage, setSelectedPage] = useState<number | null>(null);
@@ -96,10 +97,13 @@ export const UploadForm: React.FC = () => {
     
     setFile(selectedFile);
     setError(null);
+    setUploadProgress(0);
     try {
       setIsLoading(true);
       setLoadingStatus('Analyzing document structure...');
-      const analysis = await uploadPdf(selectedFile);
+      const analysis = await uploadPdf(selectedFile, (progress) => {
+        setUploadProgress(progress);
+      });
       setChapters(analysis.chapters.chapters);
       
       // Extract unique page numbers from chapters
@@ -120,6 +124,7 @@ export const UploadForm: React.FC = () => {
       setLoadingStatus('');
     } finally {
       setIsLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -435,25 +440,24 @@ export const UploadForm: React.FC = () => {
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-blue-900">{chapter.title}</h4>
+                      <h2>Chapter: </h2><h4 className="text-lg font-semibold text-blue-900">{chapter.title}</h4>
                     </div>
                   </div>
 
                   {/* Topics */}
                   <div className="ml-6 space-y-4">
-                    <h3>Topic</h3>
                     {chapter.topics.map((topic) => (
                       <div key={topic.name} className="space-y-3">
                         <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                           <div className="flex items-center space-x-3">
                             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <h5 className="text-md font-medium text-green-900">{topic.name}</h5>
+                            <h2>Topic: </h2><h5 className="text-md font-medium text-green-900">{topic.name}</h5>
                           </div>
                         </div>
 
                         {/* Subtopics */}
                         <h4>Subtopic</h4>
-                        {topic.subTopics && topic.subTopics.length > 0 && (
+                        {topic.subTopics && topic.subTopics.length > 0 ? (
                           <div className="ml-6 space-y-2">
                             {topic.subTopics.map((subTopic) => (
                               <div key={subTopic.name} className="bg-purple-50 p-3 rounded-lg border border-purple-100">
@@ -464,6 +468,8 @@ export const UploadForm: React.FC = () => {
                               </div>
                             ))}
                           </div>
+                        ) : ( 
+                          <p className="text-gray-500 italic">No subtopics found for this topic</p>
                         )}
                       </div>
                     ))}
@@ -519,18 +525,36 @@ export const UploadForm: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Upload PDF File
             </label>
-            <div className="flex items-center space-x-4">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                disabled={isLoading}
-              />
-              {isLoading && loadingStatus && (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                  <span className="text-sm text-gray-600">{loadingStatus}</span>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  disabled={isLoading}
+                />
+                {isLoading && (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span className="text-sm text-gray-600">{loadingStatus}</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Upload Progress */}
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-full">
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Uploading...</span>
+                    <span>{Math.round(uploadProgress)}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -595,76 +619,83 @@ export const UploadForm: React.FC = () => {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {pageQuiz.chapter ? `Chapter: ${pageQuiz.chapter}` : `Page ${pageQuiz.page}`}
                   </h2>
-                  <p className="text-gray-600">Topic: {pageQuiz.topic}</p>
                 </div>
 
                 {/* Multiple Choice Questions */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mr-3">
-                      1
-                    </span>
-                    Multiple Choice Questions
-                  </h3>
-                  <div className="space-y-6">
-                    {pageQuiz.questions.multiple_choice.map((question, qIndex) => (
-                      <div key={`${pageKey}_mc_${qIndex}`}>
-                        {renderMultipleChoice(question, `${pageKey}_mc_${qIndex}`)}
-                      </div>
-                    ))}
+                {pageQuiz.questions.multiple_choice.length > 0 && (
+                  <div className="mb-12">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mr-3">
+                        1
+                      </span>
+                      Multiple Choice Questions
+                    </h3>
+                    <div className="space-y-6">
+                      {pageQuiz.questions.multiple_choice.map((question, qIndex) => (
+                        <div key={`${pageKey}_mc_${qIndex}`}>
+                          {renderMultipleChoice(question, `${pageKey}_mc_${qIndex}`)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Fill in the Blanks */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600 mr-3">
-                      2
-                    </span>
-                    Fill in the Blanks
-                  </h3>
-                  <div className="space-y-6">
-                    {pageQuiz.questions.fill_blanks.map((question, qIndex) => (
-                      <div key={`${pageKey}_fb_${qIndex}`}>
-                        {renderFillBlanks(question, `${pageKey}_fb_${qIndex}`)}
-                      </div>
-                    ))}
+                {pageQuiz.questions.fill_blanks.length > 0 && (
+                  <div className="mb-12">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600 mr-3">
+                        2
+                      </span>
+                      Fill in the Blanks
+                    </h3>
+                    <div className="space-y-6">
+                      {pageQuiz.questions.fill_blanks.map((question, qIndex) => (
+                        <div key={`${pageKey}_fb_${qIndex}`}>
+                          {renderFillBlanks(question, `${pageKey}_fb_${qIndex}`)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* True/False Questions */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 mr-3">
-                      3
-                    </span>
-                    True/False Questions
-                  </h3>
-                  <div className="space-y-6">
-                    {pageQuiz.questions.true_false.map((question, qIndex) => (
-                      <div key={`${pageKey}_tf_${qIndex}`}>
-                        {renderTrueFalse(question, `${pageKey}_tf_${qIndex}`)}
-                      </div>
-                    ))}
+                {pageQuiz.questions.true_false.length > 0 && (
+                  <div className="mb-12">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 mr-3">
+                        3
+                      </span>
+                      True/False Questions
+                    </h3>
+                    <div className="space-y-6">
+                      {pageQuiz.questions.true_false.map((question, qIndex) => (
+                        <div key={`${pageKey}_tf_${qIndex}`}>
+                          {renderTrueFalse(question, `${pageKey}_tf_${qIndex}`)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Matching Questions */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 text-orange-600 mr-3">
-                      4
-                    </span>
-                    Matching Questions
-                  </h3>
-                  <div className="space-y-6">
-                    {pageQuiz.questions.matching.map((question, qIndex) => (
-                      <div key={`${pageKey}_m_${qIndex}`}>
-                        {renderMatching(question, `${pageKey}_m_${qIndex}`)}
-                      </div>
-                    ))}
+                {pageQuiz.questions.matching.length > 0 && (
+                  <div className="mb-12">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 text-orange-600 mr-3">
+                        4
+                      </span>
+                      Matching Questions
+                    </h3>
+                    <div className="space-y-6">
+                      {pageQuiz.questions.matching.map((question, qIndex) => (
+                        <div key={`${pageKey}_m_${qIndex}`}>
+                          {renderMatching(question, `${pageKey}_m_${qIndex}`)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Results Section */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
