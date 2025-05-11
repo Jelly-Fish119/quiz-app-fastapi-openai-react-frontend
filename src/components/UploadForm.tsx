@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadPdf, analyzePdf, generateQuiz } from '../features/pdf-topic-extractor/api';
+import { uploadPdf, generateQuiz } from '../features/pdf-topic-extractor/api';
 
 interface QuizQuestion {
   question: string;
@@ -97,7 +97,7 @@ export const UploadForm: React.FC = () => {
     try {
       setIsLoading(true);
       setLoadingStatus('Analyzing document structure...');
-      const analysis = await analyzePdf(selectedFile);
+      const analysis = await uploadPdf(selectedFile);
       setChapters(analysis.chapters.chapters);
       
       // Extract unique page numbers from chapters

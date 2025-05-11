@@ -5,7 +5,7 @@ const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
 export const uploadPdf = async (file: File) => {
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-  const fileId = Date.now().toString(); // Unique identifier for the file
+  const fileId = Date.now().toString();
 
   for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
     const start = chunkIndex * CHUNK_SIZE;
@@ -37,31 +37,32 @@ export const uploadPdf = async (file: File) => {
     }
   }
 
-  // After all chunks are uploaded, notify the server to combine them
   try {
-    await axios.post(`${API_URL}/pdf/complete-upload`, {
+    const response = await axios.post(`${API_URL}/pdf/complete-upload`, {
       fileId,
       fileName: file.name,
       totalChunks,
     });
+    
+    return response.data;
   } catch (error) {
     console.error('Error completing upload:', error);
     throw error;
   }
 };
 
-export const analyzePdf = async (file: File) => {
-  const formData = new FormData();
-  formData.append('file', file);
+// export const analyzePdf = async (file: File) => {
+//   const formData = new FormData();
+//   formData.append('file', file);
   
-  const response = await axios.post(`${API_URL}/pdf/analyze`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+//   const response = await axios.post(`${API_URL}/pdf/analyze`, formData, {
+//     headers: {
+//       'Content-Type': 'multipart/form-data',
+//     },
+//   });
   
-  return response.data;
-};
+//   return response.data;
+// };
 
 export const generateQuiz = async (file: File, chapter?: string, page?: number) => {
   const formData = new FormData();

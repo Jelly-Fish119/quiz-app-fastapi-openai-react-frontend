@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { analyzePdf } from '../features/pdf-topic-extractor/api';
+import { uploadPdf } from '../features/pdf-topic-extractor/api';
 
 interface Chapter {
   title: string;
@@ -35,7 +35,7 @@ export const ChapterAnalyzer: React.FC = () => {
     if (!file) return;
     try {
       setIsLoading(true);
-      const result = await analyzePdf(file);
+      const result = await uploadPdf(file);
       setAnalysis(result);
     } catch (error) {
       alert('Failed to analyze document');
