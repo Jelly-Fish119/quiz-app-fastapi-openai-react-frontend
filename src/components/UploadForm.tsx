@@ -405,28 +405,28 @@ export const UploadForm: React.FC = () => {
     return (
       <div className="mb-6 space-y-6">
         {/* Content Tree View */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Content Structure for Page {selectedPage}</h3>
-          <div className="space-y-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">Content Structure for Page {selectedPage}</h3>
+          <div className="space-y-6">
             {selectedContent.chapters.length > 0 ? (
               selectedContent.chapters.map((chapter) => (
-                <div key={chapter.title} className="space-y-2">
+                <div key={chapter.title} className="space-y-4">
                   {/* Chapter */}
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{chapter.title}</p>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <h4 className="text-lg font-semibold text-blue-900">{chapter.title}</h4>
                     </div>
                   </div>
 
                   {/* Topics */}
-                  <div className="ml-6 space-y-2">
+                  <div className="ml-6 space-y-4">
                     {chapter.topics.map((topic) => (
-                      <div key={topic.name} className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-800">{topic.name}</p>
+                      <div key={topic.name} className="space-y-3">
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <h5 className="text-md font-medium text-green-900">{topic.name}</h5>
                           </div>
                         </div>
 
@@ -434,10 +434,10 @@ export const UploadForm: React.FC = () => {
                         {topic.subTopics && topic.subTopics.length > 0 && (
                           <div className="ml-6 space-y-2">
                             {topic.subTopics.map((subTopic) => (
-                              <div key={subTopic.name} className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                <div className="flex-1">
-                                  <p className="font-medium text-gray-700">{subTopic.name}</p>
+                              <div key={subTopic.name} className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                  <p className="text-sm font-medium text-purple-900">{subTopic.name}</p>
                                 </div>
                               </div>
                             ))}
