@@ -80,6 +80,7 @@ export const UploadForm: React.FC = () => {
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: any}>({});
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState<string>('');
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<string>('');
   const [selectedPage, setSelectedPage] = useState<number | null>(null);
@@ -95,6 +96,7 @@ export const UploadForm: React.FC = () => {
     setFile(selectedFile);
     try {
       setIsLoading(true);
+      setLoadingStatus('Analyzing document structure...');
       const analysis = await analyzePdf(selectedFile);
       setChapters(analysis.chapters.chapters);
       
@@ -110,8 +112,10 @@ export const UploadForm: React.FC = () => {
         });
       });
       setAvailablePages(Array.from(pages).sort((a, b) => a - b));
+      setLoadingStatus('');
     } catch (error) {
       alert('Failed to analyze document');
+      setLoadingStatus('');
     } finally {
       setIsLoading(false);
     }
@@ -154,12 +158,15 @@ export const UploadForm: React.FC = () => {
     if (!file || !selectedContent) return;
     try {
       setIsLoading(true);
+      setLoadingStatus('Generating quiz questions...');
       const result = await generateQuiz(file, selectedChapter || undefined, selectedPage || undefined);
       setQuizzes(result);
       setSelectedAnswers({});
       setShowResults(false);
+      setLoadingStatus('');
     } catch (error) {
       alert('Failed to generate quiz questions');
+      setLoadingStatus('');
     } finally {
       setIsLoading(false);
     }
@@ -457,19 +464,36 @@ export const UploadForm: React.FC = () => {
         </div>
 
         {/* Generate Quiz Button */}
-        <button
-          onClick={handleGenerateQuiz}
-          disabled={isLoading}
-          className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
-            ${isLoading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-green-600 hover:bg-green-700'}`}
-        >
-          {isLoading ? 'Generating...' : 'Generate Quiz'}
-        </button>
+        {showContentPreview && (
+          <button
+            onClick={handleGenerateQuiz}
+            disabled={isLoading}
+            className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-colors
+              ${isLoading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700'}`}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Generating Quiz...</span>
+              </div>
+            ) : (
+              'Generate Quiz'
+            )}
+          </button>
+        )}
       </div>
     );
   };
+
+  // Loading Spinner Component
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center space-x-2">
+      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+      <span className="text-sm text-gray-600">{loadingStatus}</span>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -484,7 +508,9 @@ export const UploadForm: React.FC = () => {
               accept="application/pdf"
               onChange={handleFileChange}
               className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+              disabled={isLoading}
             />
+            {isLoading && loadingStatus && <LoadingSpinner />}
           </div>
 
           {/* Page Selection */}
@@ -503,6 +529,7 @@ export const UploadForm: React.FC = () => {
                   setShowContentPreview(false);
                 }}
                 className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                disabled={isLoading}
               >
                 <option value="">Select a page</option>
                 {availablePages.map((page) => (
@@ -518,7 +545,8 @@ export const UploadForm: React.FC = () => {
           {selectedPage && !showContentPreview && (
             <button
               onClick={handleContentSelection}
-              className="w-full mb-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="w-full mb-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
               Preview Chapters, Topics and Subtopics
             </button>
