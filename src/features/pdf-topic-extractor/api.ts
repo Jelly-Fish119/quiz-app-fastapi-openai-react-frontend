@@ -64,13 +64,15 @@ export const uploadPdf = async (file: File, onProgress?: (progress: number) => v
 //   return response.data;
 // };
 
-export const generateQuiz = async (fileName?: string, page?: number) => {
+export const generateQuiz = async (fileName: string, page?: number) => {
   const formData = new FormData();
-  if (fileName) formData.append('fileName', fileName);
-  if (page) formData.append('page', page.toString());
+  formData.append('fileName', fileName);
+  
+  const params = new URLSearchParams();
+  if (page) params.append('page', page.toString());
   
   const response = await axios.post(
-    `${API_URL}/pdf/generate-quiz`,
+    `${API_URL}/pdf/generate-quiz?${params.toString()}`,
     formData,
     {
       headers: {

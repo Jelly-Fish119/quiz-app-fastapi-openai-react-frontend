@@ -76,6 +76,7 @@ interface SelectedContent {
 
 export const UploadForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [quizzes, setQuizzes] = useState<QuizResponse | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: any}>({});
   const [showResults, setShowResults] = useState(false);
@@ -105,6 +106,7 @@ export const UploadForm: React.FC = () => {
       const analysis = await uploadPdf(selectedFile, (progress) => {
         setUploadProgress(progress);
       });
+      setUploadedFileName(analysis.fileName);
       setChapters(analysis.chapters.chapters);
       setTopics(analysis.topics);
       // Extract unique page numbers from chapters
@@ -164,9 +166,8 @@ export const UploadForm: React.FC = () => {
   };
 
   const handleGenerateQuiz = async () => {
-
-    if (!file) {
-      setError('Please select a PDF file first.');
+    if (!uploadedFileName) {
+      setError('Please upload a PDF file first.');
       return;
     }
 
@@ -179,7 +180,7 @@ export const UploadForm: React.FC = () => {
     try {
       setIsLoading(true);
       setLoadingStatus('Generating quiz questions...');
-      const result = await generateQuiz(file.name, selectedPage);
+      const result = await generateQuiz(uploadedFileName, selectedPage);
       setQuizzes(result);
       setSelectedAnswers({});
       setShowResults(false);
