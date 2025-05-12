@@ -83,6 +83,7 @@ export const UploadForm: React.FC = () => {
   const [loadingStatus, setLoadingStatus] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<string>('');
   const [selectedPage, setSelectedPage] = useState<number | null>(null);
   const [availablePages, setAvailablePages] = useState<number[]>([]);
@@ -105,7 +106,7 @@ export const UploadForm: React.FC = () => {
         setUploadProgress(progress);
       });
       setChapters(analysis.chapters.chapters);
-      
+      setTopics(analysis.topics);
       // Extract unique page numbers from chapters
       const pages = new Set<number>();
       analysis.chapters.chapters.forEach((chapter: Chapter) => {
@@ -152,6 +153,7 @@ export const UploadForm: React.FC = () => {
         });
       }
     });
+    console.log(selectedChapters, selectedTopics, selectedSubTopics);
 
     setSelectedContent({
       chapters: selectedChapters,
@@ -162,6 +164,7 @@ export const UploadForm: React.FC = () => {
   };
 
   const handleGenerateQuiz = async () => {
+
     if (!file) {
       setError('Please select a PDF file first.');
       return;
@@ -176,7 +179,7 @@ export const UploadForm: React.FC = () => {
     try {
       setIsLoading(true);
       setLoadingStatus('Generating quiz questions...');
-      const result = await generateQuiz(file.name, selectedChapter || undefined, selectedPage);
+      const result = await generateQuiz(file.name, selectedPage);
       setQuizzes(result);
       setSelectedAnswers({});
       setShowResults(false);
@@ -477,7 +480,7 @@ export const UploadForm: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 italic">No content found for this page</p>
+              <p className="text-gray-500 italic">{selectedPage !== null ? topics[selectedPage]?.name : 'No content found for this page'}</p>
             )}
           </div>
         </div>
