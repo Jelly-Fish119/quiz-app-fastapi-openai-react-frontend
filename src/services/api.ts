@@ -58,7 +58,7 @@ export class API {
    */
   public static async analyzePage(pageNumber: number, text: string): Promise<PageAnalysisResponse> {
     try {
-      const response = await axios.post(`${API_URL}/api/analyze-page`, {
+      const response = await axios.post(`${API_URL}/pdf/analyze-page`, {
         pageNumber,
         text
       });
@@ -74,7 +74,7 @@ export class API {
    */
   public static async generateQuiz(pageNumber: number, text: string, chapter: string): Promise<QuizResponse> {
     try {
-      const response = await axios.post(`${API_URL}/api/generate-quiz`, {
+      const response = await axios.post(`${API_URL}/pdf/generate-quiz`, {
         pageNumber,
         text,
         chapter
