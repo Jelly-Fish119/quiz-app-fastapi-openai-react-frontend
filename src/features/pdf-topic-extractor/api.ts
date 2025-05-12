@@ -69,7 +69,7 @@ export const generateQuiz = async (fileName: string, page?: number) => {
   formData.append('fileName', fileName);
   
   const params = new URLSearchParams();
-  if (page) params.append('page', page.toString());
+  if (page !== undefined) params.append('page', page.toString());
   
   const response = await axios.post(
     `${API_URL}/pdf/generate-quiz?${params.toString()}`,
