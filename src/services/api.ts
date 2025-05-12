@@ -38,7 +38,7 @@ export interface QuizResponse {
 export class API {
   static async analyzePages(pages: ExtractedPage[]): Promise<QuizResponse> {
     try {
-      const response = await axios.post(`${API_URL}/api/analyze-pages`, {
+      const response = await axios.post(`${API_URL}/pdf/analyze-pages`, {
         pages: pages.map(page => ({
           page_number: page.pageNumber,
           text: page.text
