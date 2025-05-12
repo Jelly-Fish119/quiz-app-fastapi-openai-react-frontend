@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { ExtractedPage } from './pdf-extractor';
+import { ExtractedPage } from './pdf-service';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export interface Topic {
   name: string;
@@ -12,7 +12,6 @@ export interface Topic {
 export interface Chapter {
   name: string;
   confidence: number;
-  pageNumber: number;
 }
 
 export interface QuizQuestion {
@@ -35,6 +34,10 @@ export interface QuizResponse {
   };
 }
 
+export interface PageAnalysisResponse {
+  chapters: Chapter[];
+}
+
 export class API {
   static async analyzePages(pages: ExtractedPage[]): Promise<QuizResponse> {
     try {
@@ -47,6 +50,39 @@ export class API {
       return response.data;
     } catch (error) {
       throw new Error('Failed to analyze pages');
+    }
+  }
+
+  /**
+   * Analyze a single page and extract chapters
+   */
+  public static async analyzePage(pageNumber: number, text: string): Promise<PageAnalysisResponse> {
+    try {
+      const response = await axios.post(`${API_URL}/api/analyze-page`, {
+        pageNumber,
+        text
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error analyzing page:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate quiz questions for a specific page and chapter
+   */
+  public static async generateQuiz(pageNumber: number, text: string, chapter: string): Promise<QuizResponse> {
+    try {
+      const response = await axios.post(`${API_URL}/api/generate-quiz`, {
+        pageNumber,
+        text,
+        chapter
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating quiz:', error);
+      throw error;
     }
   }
 } 

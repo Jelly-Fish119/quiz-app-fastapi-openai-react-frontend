@@ -3,7 +3,7 @@ import { Container, Box, Alert, Typography, TextField, Button, Chip, CircularPro
 import { FileUpload } from './FileUpload';
 import { PageContent } from './PageContent';
 import { QuizDisplay } from './QuizDisplay';
-import { PDFExtractor, ExtractedPage } from '../services/pdf-extractor';
+import {  ExtractedPage } from '../services/pdf-extractor';
 import { API, QuizResponse } from '../services/api';
 
 export const UploadForm: React.FC = () => {
