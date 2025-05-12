@@ -72,17 +72,17 @@ export class API {
   /**
    * Generate quiz questions for a specific page and chapter
    */
-  public static async generateQuiz(pageNumber: number, text: string, chapter: string): Promise<QuizResponse> {
+   /**
+   * Generate quiz questions based on analysis
+   */
+   public static async generateQuiz(analysis: any): Promise<QuizResponse> {
     try {
-      const response = await axios.post(`${API_URL}/pdf/generate-quiz`, {
-        pageNumber,
-        text,
-        chapter
-      });
+      console.log('analysis', analysis);
+      const response = await axios.post(`${API_URL}/pdf/generate-quiz`, analysis);
       return response.data;
     } catch (error) {
       console.error('Error generating quiz:', error);
       throw error;
     }
   }
-} 
+}

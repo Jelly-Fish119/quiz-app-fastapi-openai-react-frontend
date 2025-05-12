@@ -5,6 +5,7 @@ import { PageContent } from './PageContent';
 import { QuizDisplay } from './QuizDisplay';
 import {  ExtractedPage } from '../services/pdf-extractor';
 import { API, QuizResponse } from '../services/api';
+import PageAnalysisResults from './PageAnalysisResults';
 
 export const UploadForm: React.FC = () => {
   const [pages, setPages] = React.useState<ExtractedPage[]>([]);
@@ -13,6 +14,7 @@ export const UploadForm: React.FC = () => {
   const [error, setError] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [quizResponse, setQuizResponse] = React.useState<QuizResponse | null>(null);
+  const [analysis, setAnalysis] = React.useState<any>(null);
 
   const handleFileProcessed = async (extractedPages: ExtractedPage[]) => {
     setPages(extractedPages);
@@ -56,13 +58,32 @@ export const UploadForm: React.FC = () => {
 
     try {
       const response = await API.analyzePages(selectedPages);
-      setQuizResponse(response);
+      // setQuizResponse(response);
+      setAnalysis(response);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to analyze pages');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleGenerateQuiz = async () => {
+    if(analysis === null) {
+      setError('Please analyze pages first');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await API.generateQuiz(analysis);
+      setQuizResponse(response);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to generate quiz');
+    } finally {
+    };
+  }
 
   return (
     <Container maxWidth="md">
@@ -115,11 +136,11 @@ export const UploadForm: React.FC = () => {
                 <Button
                   variant="contained"
                   color="secondary"
-                  onClick={handleAnalyzePages}
+                  onClick={analysis ? handleGenerateQuiz : handleAnalyzePages}
                   disabled={isLoading}
                   sx={{ mb: 2 }}
                 >
-                  {isLoading ? <CircularProgress size={24} /> : 'Generate Quiz'}
+                  {isLoading ? <CircularProgress size={24} /> : (analysis ? 'Generate Quiz' : 'Analyze Pages')}
                 </Button>
               </>
             )}
@@ -131,6 +152,8 @@ export const UploadForm: React.FC = () => {
             {error}
           </Alert>
         )}
+
+        {analysis && <PageAnalysisResults analysis={analysis} />}
 
         {quizResponse && (
           <>

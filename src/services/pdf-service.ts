@@ -58,6 +58,20 @@ export class PDFService {
     }
 
     /**
+     * Analyze a PDF file and return topics and chapters for all pages
+     */
+    public async analyzePDF(file: File): Promise<any> {
+        try {
+            const pages = await this.loadPDF(file);
+            const response = await API.analyzePages(pages);
+            return response;
+        } catch (error) {
+            console.error('Error analyzing PDF:', error);
+            throw new Error('Failed to analyze PDF');
+        }
+    }
+
+    /**
      * Analyze chapters from a specific page
      */
     public async analyzeChapters(page: ExtractedPage): Promise<Chapter[]> {
