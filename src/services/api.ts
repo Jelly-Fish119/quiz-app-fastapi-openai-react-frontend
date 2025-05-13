@@ -79,6 +79,7 @@ export class API {
     try {
       console.log('analysis', analysis);
       const response = await axios.post(`${API_URL}/pdf/generate-quiz`, analysis);
+      console.log('response from generate-quiz', response);
       return response.data;
     } catch (error) {
       console.error('Error generating quiz:', error);
