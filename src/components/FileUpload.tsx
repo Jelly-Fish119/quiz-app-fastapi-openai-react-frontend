@@ -1,73 +1,73 @@
-import React from 'react';
-import { Box, Button, LinearProgress, Typography } from '@mui/material';
-import { PDFExtractor, PageContent, UploadProgress } from '../services/pdf-extractor';
+import React, { useState } from 'react';
+import { Box, Button, Typography, CircularProgress } from '@mui/material';
+import { PDFExtractor, PageContent } from '../services/pdf-extractor';
+import { AnalysisResponse, API } from '../services/api';
 
 interface FileUploadProps {
-  onFileProcessed: (pages: PageContent[]) => void;
+  onAnalysisComplete: (data: AnalysisResponse) => void;
   onError: (error: string) => void;
+  setLoading: (loading: boolean) => void;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
-  onFileProcessed,
+  onAnalysisComplete,
   onError,
+  setLoading,
 }) => {
-  const [isProcessing, setIsProcessing] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
 
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      onError('Please select a PDF file');
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      onError('Please select a file first');
       return;
     }
 
-    setIsProcessing(true);
-    setProgress(0);
-
     try {
-      await PDFExtractor.uploadFile(file, (progress) => {
-        setProgress(progress.percentage);
-      });
-      const pages = await PDFExtractor.extractPages(file);
-      onFileProcessed(pages);
+      setLoading(true);
+      const pages = await PDFExtractor.extractPages(selectedFile);
+      const analysis = await API.analyzePages(pages);
+      onAnalysisComplete(analysis);
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Failed to process PDF');
     } finally {
-      setIsProcessing(false);
-      setProgress(0);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ width: '100%', mb: 2 }}>
+    <Box sx={{ textAlign: 'center', mt: 4 }}>
       <input
         type="file"
         accept=".pdf"
         onChange={handleFileSelect}
         style={{ display: 'none' }}
-        ref={fileInputRef}
+        id="file-upload"
       />
-      <Button
-        variant="contained"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={isProcessing}
-        fullWidth
-      >
-        {isProcessing ? 'Processing PDF...' : 'Select PDF File'}
-      </Button>
-
-      {isProcessing && (
-        <Box sx={{ width: '100%', mt: 2 }}>
-          <LinearProgress variant="determinate" value={progress} />
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-            {Math.round(progress)}%
+      <label htmlFor="file-upload">
+        <Button variant="contained" component="span">
+          Select PDF
+        </Button>
+      </label>
+      {selectedFile && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body1" gutterBottom>
+            Selected file: {selectedFile.name}
           </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleUpload}
+            sx={{ mt: 1 }}
+          >
+            Upload and Analyze
+          </Button>
         </Box>
       )}
     </Box>

@@ -22,14 +22,27 @@ export interface QuizQuestion {
   options: string[];
   correct_answer: string;
   explanation: string;
-  type: 'multiple_choice' | 'true_false' | 'fill_blanks' | 'matching' | 'short_answer';
-  pageNumber: number;
-  lineNumber: number;
+  type: 'multiple_choice' | 'true_false' | 'fill_blank' | 'short_answer';
+  page_number: number;
+  line_number: number;
+  chapter: string;
+  topic: string;
 }
 
 export interface AnalysisResponse {
-  topics: Topic[];
-  chapters: Chapter[];
+  topics: Array<{
+    name: string;
+    confidence: number;
+    page_number: number;
+    line_number: number;
+  }>;
+  chapters: Array<{
+    number: number;
+    name: string;
+    confidence: number;
+    page_number: number;
+    line_number: number;
+  }>;
   questions: QuizQuestion[];
 }
 
