@@ -1,9 +1,9 @@
 import React from 'react';
 import { Box, Button, LinearProgress, Typography } from '@mui/material';
-import { PDFExtractor, ExtractedPage } from '../services/pdf-extractor';
+import { PDFExtractor, PageContent, UploadProgress } from '../services/pdf-extractor';
 
 interface FileUploadProps {
-  onFileProcessed: (pages: ExtractedPage[]) => void;
+  onFileProcessed: (pages: PageContent[]) => void;
   onError: (error: string) => void;
 }
 
@@ -28,6 +28,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     setProgress(0);
 
     try {
+      await PDFExtractor.uploadFile(file, (progress) => {
+        setProgress(progress.percentage);
+      });
       const pages = await PDFExtractor.extractPages(file);
       onFileProcessed(pages);
     } catch (error) {
@@ -63,7 +66,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         <Box sx={{ width: '100%', mt: 2 }}>
           <LinearProgress variant="determinate" value={progress} />
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-            {progress}%
+            {Math.round(progress)}%
           </Typography>
         </Box>
       )}

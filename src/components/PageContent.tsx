@@ -1,9 +1,9 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
-import { ExtractedPage } from '../services/pdf-extractor';
+import { PageContent as PDFPageContent } from '../services/pdf-extractor';
 
 interface PageContentProps {
-  page: ExtractedPage;
+  page: PDFPageContent;
   topics: any[];
   chapters: any[];
 }

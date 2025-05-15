@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ExtractedPage } from './pdf-service';
+import { PageContent } from './pdf-extractor';
 
 export const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -7,11 +7,14 @@ export interface Topic {
   name: string;
   confidence: number;
   pageNumber: number;
+  lineNumber: number;
 }
 
 export interface Chapter {
   name: string;
   confidence: number;
+  pageNumber: number;
+  lineNumber: number;
 }
 
 export interface QuizQuestion {
@@ -20,31 +23,24 @@ export interface QuizQuestion {
   correct_answer: string;
   explanation: string;
   type: 'multiple_choice' | 'true_false' | 'fill_blanks' | 'matching' | 'short_answer';
+  pageNumber: number;
+  lineNumber: number;
 }
 
-export interface QuizResponse {
+export interface AnalysisResponse {
   topics: Topic[];
   chapters: Chapter[];
-  questions: {
-    multiple_choice: QuizQuestion[];
-    true_false: QuizQuestion[];
-    fill_blanks: QuizQuestion[];
-    matching: QuizQuestion[];
-    short_answer: QuizQuestion[];
-  };
-}
-
-export interface PageAnalysisResponse {
-  chapters: Chapter[];
+  questions: QuizQuestion[];
 }
 
 export class API {
-  static async analyzePages(pages: ExtractedPage[]): Promise<QuizResponse> {
+  static async analyzePages(pages: PageContent[]): Promise<AnalysisResponse> {
     try {
       const response = await axios.post(`${API_URL}/pdf/analyze-pages`, {
         pages: pages.map(page => ({
           page_number: page.pageNumber,
-          text: page.text
+          text: page.text,
+          line_numbers: page.lineNumbers
         }))
       });
       return response.data;
@@ -53,36 +49,12 @@ export class API {
     }
   }
 
-  /**
-   * Analyze a single page and extract chapters
-   */
-  public static async analyzePage(pageNumber: number, text: string): Promise<PageAnalysisResponse> {
+  public static async getAnalysisResults(fileId: string): Promise<AnalysisResponse> {
     try {
-      const response = await axios.post(`${API_URL}/pdf/analyze-page`, {
-        pageNumber,
-        text
-      });
+      const response = await axios.get(`${API_URL}/pdf/analysis/${fileId}`);
       return response.data;
     } catch (error) {
-      console.error('Error analyzing page:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Generate quiz questions for a specific page and chapter
-   */
-   /**
-   * Generate quiz questions based on analysis
-   */
-   public static async generateQuiz(analysis: any): Promise<QuizResponse> {
-    try {
-      console.log('analysis', analysis);
-      const response = await axios.post(`${API_URL}/pdf/generate-quiz`, analysis);
-      console.log('response from generate-quiz', response);
-      return response.data;
-    } catch (error) {
-      console.error('Error generating quiz:', error);
+      console.error('Error getting analysis results:', error);
       throw error;
     }
   }
