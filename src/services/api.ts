@@ -1,20 +1,31 @@
 import axios from 'axios';
-import { PageContent } from './pdf-extractor';
 
 export const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+export interface LineNumber {
+  start: number;
+  end: number;
+}
+
+export interface PageContent {
+  page_number: number;
+  text: string;
+  line_numbers: LineNumber[];
+}
 
 export interface Topic {
   name: string;
   confidence: number;
-  pageNumber: number;
-  lineNumber: number;
+  page_number: number;
+  line_number: number;
 }
 
 export interface Chapter {
+  number: number;
   name: string;
   confidence: number;
-  pageNumber: number;
-  lineNumber: number;
+  page_number: number;
+  line_number: number;
 }
 
 export interface QuizQuestion {
@@ -22,7 +33,7 @@ export interface QuizQuestion {
   options: string[];
   correct_answer: string;
   explanation: string;
-  type: 'multiple_choice' | 'true_false' | 'fill_blank' | 'short_answer';
+  type: string;
   page_number: number;
   line_number: number;
   chapter: string;
@@ -30,45 +41,49 @@ export interface QuizQuestion {
 }
 
 export interface AnalysisResponse {
-  topics: Array<{
-    name: string;
-    confidence: number;
-    page_number: number;
-    line_number: number;
-  }>;
-  chapters: Array<{
-    number: number;
-    name: string;
-    confidence: number;
-    page_number: number;
-    line_number: number;
-  }>;
+  topics: Topic[];
+  chapters: Chapter[];
   questions: QuizQuestion[];
 }
 
 export class API {
-  static async analyzePages(pages: PageContent[]): Promise<AnalysisResponse> {
+  static async uploadChunk(file: File, chunkIndex: number, totalChunks: number, fileName: string): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('chunk_index', chunkIndex.toString());
+    formData.append('total_chunks', totalChunks.toString());
+    formData.append('file_name', fileName);
+
     try {
-      const response = await axios.post(`${API_URL}/pdf/analyze-pages`, {
-        pages: pages.map(page => ({
-          page_number: page.pageNumber,
-          text: page.text,
-          line_numbers: page.lineNumbers
-        }))
+      await axios.post(`${API_URL}/pdf/upload-chunk`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      return response.data;
     } catch (error) {
-      throw new Error('Failed to analyze pages');
+      throw new Error('Failed to upload chunk');
     }
   }
 
-  public static async getAnalysisResults(fileId: string): Promise<AnalysisResponse> {
+  static async finalizeUpload(fileName: string, totalChunks: number): Promise<AnalysisResponse> {
+    const formData = new FormData();
+    formData.append('file_name', fileName);
+    formData.append('total_chunks', totalChunks.toString());
+
+    try {
+      const response = await axios.post(`${API_URL}/pdf/finalize-upload`, formData);
+      return response.data.analysis;
+    } catch (error) {
+      throw new Error('Failed to finalize upload');
+    }
+  }
+
+  static async getAnalysis(fileId: string): Promise<AnalysisResponse> {
     try {
       const response = await axios.get(`${API_URL}/pdf/analysis/${fileId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting analysis results:', error);
-      throw error;
+      throw new Error('Failed to get analysis results');
     }
   }
 }

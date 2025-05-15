@@ -16,26 +16,10 @@ import {
   Chip,
   Stack,
 } from '@mui/material';
-
-interface Option {
-  text: string;
-  value: string;
-}
-
-interface Question {
-  question: string;
-  options: string[];
-  correct_answer: string;
-  explanation: string;
-  type: 'multiple_choice' | 'true_false' | 'fill_blank' | 'short_answer';
-  page_number: number;
-  line_number: number;
-  chapter: string;
-  topic: string;
-}
+import { QuizQuestion } from '../services/api';
 
 interface QuizDisplayProps {
-  questions: Question[];
+  questions: QuizQuestion[];
 }
 
 const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
@@ -89,7 +73,7 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
               {currentQuestion.options.map((option, index) => (
                 <FormControlLabel
                   key={index}
-                  value={option.split(']')[0] + ']'}
+                  value={option}
                   control={<Radio />}
                   label={option}
                 />

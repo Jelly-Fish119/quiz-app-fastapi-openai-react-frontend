@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, CircularProgress } from '@mui/material';
-import { PDFExtractor, PageContent } from '../services/pdf-extractor';
+import { Box, Button, Typography } from '@mui/material';
 import { AnalysisResponse, API } from '../services/api';
 
 interface FileUploadProps {
@@ -8,6 +7,8 @@ interface FileUploadProps {
   onError: (error: string) => void;
   setLoading: (loading: boolean) => void;
 }
+
+const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
 export const FileUpload: React.FC<FileUploadProps> = ({
   onAnalysisComplete,
@@ -31,8 +32,23 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       setLoading(true);
-      const pages = await PDFExtractor.extractPages(selectedFile);
-      const analysis = await API.analyzePages(pages);
+      const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
+      const fileName = selectedFile.name;
+
+      // Upload chunks
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, selectedFile.size);
+        const chunkBlob = selectedFile.slice(start, end);
+        const chunkFile = new File([chunkBlob], `${fileName}.part${chunkIndex}`, {
+          type: selectedFile.type
+        });
+        
+        await API.uploadChunk(chunkFile, chunkIndex, totalChunks, fileName);
+      }
+
+      // Finalize upload and get analysis
+      const analysis = await API.finalizeUpload(fileName, totalChunks);
       onAnalysisComplete(analysis);
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Failed to process PDF');
