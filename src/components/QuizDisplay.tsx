@@ -11,7 +11,6 @@ import {
   TextField,
   Button,
   Paper,
-  Divider,
   Alert,
   Chip,
   Stack,
@@ -145,6 +144,16 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
     );
   };
 
+  if (!questions.length) {
+    return (
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <Typography variant="h6" color="textSecondary">
+          No questions available
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
       {showResults ? (
@@ -158,11 +167,23 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
           <Typography variant="body1" mt={2}>
             You got {Math.round((score / 100) * questions.length)} out of {questions.length} questions correct.
           </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setShowResults(false);
+              setCurrentQuestionIndex(0);
+              setUserAnswers({});
+            }}
+            sx={{ mt: 2 }}
+          >
+            Try Again
+          </Button>
         </Paper>
       ) : (
         <Card>
           <CardContent>
-            <Stack direction="row" spacing={1} mb={2}>
+            <Stack direction="row" spacing={1} mb={2} flexWrap="wrap" useFlexGap>
               <Chip label={`Chapter: ${currentQuestion.chapter}`} />
               <Chip label={`Topic: ${currentQuestion.topic}`} />
               <Chip label={`Page: ${currentQuestion.page_number}`} />

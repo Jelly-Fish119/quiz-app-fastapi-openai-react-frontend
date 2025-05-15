@@ -7,11 +7,6 @@ export interface LineNumber {
   end: number;
 }
 
-export interface PageContent {
-  page_number: number;
-  text: string;
-  line_numbers: LineNumber[];
-}
 
 export interface Topic {
   name: string;

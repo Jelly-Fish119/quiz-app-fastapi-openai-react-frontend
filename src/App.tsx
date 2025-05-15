@@ -1,29 +1,53 @@
+import React, { useState } from 'react';
+import { Box, Container, Typography, CircularProgress } from '@mui/material';
 import { FileUpload } from './components/FileUpload';
-import { useState } from 'react';
-import { AnalysisResponse } from './services/api';
 import QuizDisplay from './components/QuizDisplay';
+import { AnalysisResponse } from './services/api';
 
-function App() {
+const Home: React.FC = () => {
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAnalysisComplete = (data: AnalysisResponse) => {
     setAnalysis(data);
+    setLoading(false);
+    setError(null);
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">PDF Quiz Generator</h1>
-      <FileUpload 
-        onAnalysisComplete={handleAnalysisComplete} 
-        onError={setError}
-        setLoading={setLoading}
-      />
-      {error && <div className="text-red-500 mt-2">{error}</div>}
-      {analysis && <QuizDisplay questions={analysis.questions} />}
-    </div>
-  );
-}
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          PDF Quiz Generator
+        </Typography>
 
-export default App;
+        {!analysis && (
+          <FileUpload
+            onAnalysisComplete={handleAnalysisComplete}
+            onError={setError}
+            setLoading={setLoading}
+          />
+        )}
+
+        {loading && (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {error && (
+          <Typography color="error" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
+
+        {analysis && (
+          <QuizDisplay questions={analysis.questions} />
+        )}
+      </Box>
+    </Container>
+  );
+};
+
+export default Home; 

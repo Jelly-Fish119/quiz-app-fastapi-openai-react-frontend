@@ -15,11 +15,6 @@ const Home: React.FC = () => {
     setError(null);
   };
 
-  const handleError = (error: string) => {
-    setError(error);
-    setLoading(false);
-  };
-
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
@@ -30,7 +25,7 @@ const Home: React.FC = () => {
         {!analysis && (
           <FileUpload
             onAnalysisComplete={handleAnalysisComplete}
-            onError={handleError}
+            onError={setError}
             setLoading={setLoading}
           />
         )}
