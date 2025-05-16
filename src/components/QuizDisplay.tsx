@@ -48,6 +48,45 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
     }
   };
 
+  const downloadCSV = () => {
+    // Create CSV content
+    const headers = ['Question', 'Your Answer', 'Correct Answer', 'Result', 'Explanation', 'Chapter', 'Topic', 'Page', 'Line'];
+    const rows = questions.map((question, index) => {
+      const userAnswer = userAnswers[index] || '';
+      const isCorrect = userAnswer.toLowerCase() === question.correct_answer.toLowerCase();
+      return [
+        question.question,
+        userAnswer,
+        question.correct_answer,
+        isCorrect ? 'Correct' : 'Incorrect',
+        question.explanation,
+        question.chapter,
+        question.topic,
+        question.page_number,
+        question.line_number
+      ];
+    });
+
+    // Add score row
+    rows.push(['', '', '', `Score: ${score.toFixed(1)}%`, '', '', '', '', '']);
+
+    // Convert to CSV string
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'quiz_results.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const calculateScore = () => {
     let correctAnswers = 0;
     questions.forEach((question, index) => {
@@ -58,6 +97,7 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
     });
     setScore((correctAnswers / questions.length) * 100);
     setShowResults(true);
+    downloadCSV(); // Download CSV when quiz is submitted
   };
 
   const renderQuestionInput = () => {
@@ -167,18 +207,27 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
           <Typography variant="body1" mt={2}>
             You got {Math.round((score / 100) * questions.length)} out of {questions.length} questions correct.
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setShowResults(false);
-              setCurrentQuestionIndex(0);
-              setUserAnswers({});
-            }}
-            sx={{ mt: 2 }}
-          >
-            Try Again
-          </Button>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setShowResults(false);
+                setCurrentQuestionIndex(0);
+                setUserAnswers({});
+              }}
+              sx={{ mr: 2 }}
+            >
+              Try Again
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={downloadCSV}
+            >
+              Download Results
+            </Button>
+          </Box>
         </Paper>
       ) : (
         <Card>
