@@ -233,7 +233,7 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
         <Card>
           <CardContent>
             <Stack direction="row" spacing={1} mb={2} flexWrap="wrap" useFlexGap>
-              <Chip label={`${currentQuestion.chapter}`} />
+              <Chip label={`Chapter: ${currentQuestion.chapter}`} />
               <Chip label={`Topic: ${currentQuestion.topic}`} />
               <Chip label={`Page: ${currentQuestion.page_number}`} />
             </Stack>
