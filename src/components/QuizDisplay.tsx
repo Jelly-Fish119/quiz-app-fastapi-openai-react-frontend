@@ -236,7 +236,6 @@ const QuizDisplay: React.FC<QuizDisplayProps> = ({ questions }) => {
               <Chip label={`Chapter: ${currentQuestion.chapter}`} />
               <Chip label={`Topic: ${currentQuestion.topic}`} />
               <Chip label={`Page: ${currentQuestion.page_number}`} />
-              <Chip label={`Line: ${currentQuestion.line_number}`} />
             </Stack>
 
             <Typography variant="h6" gutterBottom>
